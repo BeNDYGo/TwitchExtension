@@ -9,6 +9,8 @@
 - **Twitch Tracker**
 - **Sullygnome**
 
+![Screenshot](https://github.com/BeNDYGo/TwitchExtension/blob/main/preview/Screenshot.png)
+
 ## Работа:
 
 1. Откройте стрим
