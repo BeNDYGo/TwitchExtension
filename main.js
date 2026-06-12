@@ -1,35 +1,59 @@
+function getChannelName() {
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    return parts[0] || '';
+}
+
+function saveVisitTime(channel) {
+    const now = new Date();
+    const key = `lastVisit_${channel}`;
+    chrome.storage.local.get(key, (result) => {
+        let history = result[key] || [];
+        const today = `${now.getDate()}.${now.getMonth()}.${now.getFullYear()}`;
+
+        if (history.length > 0) {
+            const lastEntry = new Date(history[0]);
+            const lastDay = `${lastEntry.getDate()}.${lastEntry.getMonth()}.${lastEntry.getFullYear()}`;
+            if (lastDay === today) {
+                history[0] = now.toISOString();
+                chrome.storage.local.set({ [key]: history });
+                return;
+            }
+        }
+
+        history.unshift(now.toISOString());
+        if (history.length > 3) history.pop();
+        chrome.storage.local.set({ [key]: history });
+    });
+}
+
+function getVisitTime(channel) {
+    return new Promise((resolve) => {
+        const key = `lastVisit_${channel}`;
+        chrome.storage.local.get(key, (result) => {
+            resolve(result[key] || []);
+        });
+    });
+}
+
+function formatVisitTime(isoString) {
+    const date = new Date(isoString);
+    const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+        'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${day} ${month} ${year} ${hours}:${minutes}`;
+}
+
 function CreatetrackerBlock() {
     const div = document.createElement('div');
     div.id = 'custom-check-div';
-    div.style.display = 'flex';
-    //div.style.justifyContent = 'center';
-    div.style.alignItems = 'center';
-    div.style.padding = '5px 10px 5px 50px';
-    div.style.border = '2px solid #18181b';
-    div.style.borderRadius = '10px';
-    div.style.marginTop = '10px';
-    div.style.background = '#0e0e10';
 
     const tracker_button = document.createElement('tracker_button');
     tracker_button.textContent = 'Twitch Tracker';
-    tracker_button.style.background = '#2A3440';
-    tracker_button.style.color = '#ffffffff';
-    tracker_button.style.border = '2px solid #444f5cff';
-    tracker_button.style.borderRadius = '10px';
-    tracker_button.style.padding = '6px 12px';
-    tracker_button.style.fontSize = '10px';
-    tracker_button.style.fontWeight = '500';
-    tracker_button.style.cursor = 'pointer';
-    tracker_button.style.transition = 'all 0.25s ease';
-    tracker_button.style.margin = '10px';
-    tracker_button.style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)';
-
-    tracker_button.addEventListener('mouseover', () => {
-        tracker_button.style.transform = 'scale(1.07)';
-    });
-    tracker_button.addEventListener('mouseout', () => {
-        tracker_button.style.transform = 'scale(1)';
-    });
+    tracker_button.className = 'tracker-btn';
     tracker_button.addEventListener('click', () => {
         const url = new URL(window.location.href);
         url.hostname = 'twitchtracker.com';
@@ -40,24 +64,7 @@ function CreatetrackerBlock() {
 
     const sullygnome_button = document.createElement('sullygnome_button');
     sullygnome_button.textContent = 'Sullygnome';
-    sullygnome_button.style.background = '#2A3440';
-    sullygnome_button.style.color = '#ffffffff';
-    sullygnome_button.style.border = '2px solid #444f5cff';
-    sullygnome_button.style.borderRadius = '10px';
-    sullygnome_button.style.padding = '6px 12px';
-    sullygnome_button.style.fontSize = '10px';
-    sullygnome_button.style.fontWeight = '500';
-    sullygnome_button.style.cursor = 'pointer';
-    sullygnome_button.style.transition = 'all 0.25s ease';
-    sullygnome_button.style.margin = '10px';
-    sullygnome_button.style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)';
-
-    sullygnome_button.addEventListener('mouseover', () => {
-        sullygnome_button.style.transform = 'scale(1.07)';
-    });
-    sullygnome_button.addEventListener('mouseout', () => {
-        sullygnome_button.style.transform = 'scale(1)';
-    });
+    sullygnome_button.className = 'tracker-btn';
     sullygnome_button.addEventListener('click', () => {
         const url = new URL(window.location.href);
         url.hostname = 'sullygnome.com';
@@ -67,17 +74,33 @@ function CreatetrackerBlock() {
     });
     div.appendChild(sullygnome_button);
 
+    const timeDisplay = document.createElement('div');
+    timeDisplay.id = 'visit-history';
+    div.appendChild(timeDisplay);
+
     return div;
 }
 
 function TwitchScript() {
-    const DescriptionDiv = document.querySelector('[aria-label="Сведения о трансляции"]');
-    const PredInfoDiv = DescriptionDiv.querySelector('div');
-    const InfoDiv = PredInfoDiv.querySelector('div'); 
+    const channel = getChannelName();
+    saveVisitTime(channel);
+
+    const panel = document.querySelector('[class*="about-section__panel"]');
+    if (!panel) return;
 
     const TrackerDiv = CreatetrackerBlock();
-    InfoDiv.appendChild(TrackerDiv);
+    panel.appendChild(TrackerDiv);
     console.log('добавлен div');
+
+    getVisitTime(channel).then((history) => {
+        const container = document.getElementById('visit-history');
+        history.forEach((iso) => {
+            const line = document.createElement('div');
+            line.className = 'visit-entry';
+            line.textContent = formatVisitTime(iso);
+            container.appendChild(line);
+        });
+    });
 }
 
 const observer = new MutationObserver(() => {

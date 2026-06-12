@@ -1,15 +1,17 @@
 {
   "manifest_version": 3,
   "name": "Twitch Extension",
-  "version": "1.2",
+  "version": "2.4",
   "description": "Предоставляет статистику с Twitch Tracker и Sullygnome",
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
   "content_scripts": [
     {
       "matches": ["https://*.twitch.tv/*"],
-      "js": ["main.js"]
+      "js": ["main.js"],
+      "css": ["styles.css"]
     }
   ]
 }
