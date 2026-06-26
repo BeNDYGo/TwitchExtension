@@ -57,7 +57,8 @@ function CreatetrackerBlock() {
     tracker_button.addEventListener('click', () => {
         const url = new URL(window.location.href);
         url.hostname = 'twitchtracker.com';
-        url.pathname += '/streams';
+        const channelName = getChannelName();
+        url.pathname = `/${channelName}/streams`;
         window.open(url.toString());
     });
     div.appendChild(tracker_button);
@@ -66,9 +67,9 @@ function CreatetrackerBlock() {
     sullygnome_button.textContent = 'Sullygnome';
     sullygnome_button.className = 'tracker-btn';
     sullygnome_button.addEventListener('click', () => {
+        const channelName = getChannelName();
         const url = new URL(window.location.href);
         url.hostname = 'sullygnome.com';
-        const channelName = url.pathname.split('/').pop();
         url.pathname = `/channel/${channelName}`;
         window.open(url.toString());
     });
