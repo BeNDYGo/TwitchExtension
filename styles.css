@@ -25,13 +25,29 @@
     transform: scale(1.07);
 }
 
-#visit-history {
+#time-details {
     margin-left: auto;
+    padding-left: 20px;
     padding-right: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    flex-shrink: 0;
+}
+
+#visit-history {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 2px;
+}
+
+#watch-time {
+    color: #efeff1;
+    font-size: 12px;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
 .visit-entry {
